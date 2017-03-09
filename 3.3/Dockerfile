@@ -1,4 +1,4 @@
-FROM ruby:2.2-slim
+FROM ruby:2.3-slim
 
 # add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
 RUN groupadd -r redmine && useradd -r -g redmine redmine
@@ -48,8 +48,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV RAILS_ENV production
 WORKDIR /usr/src/redmine
 
-ENV REDMINE_VERSION 3.3.2
-ENV REDMINE_DOWNLOAD_MD5 8e403981dc3a19a42ee978f055be62ca
+ENV REDMINE_VERSION 3.3.0
+ENV REDMINE_DOWNLOAD_MD5 0c0abb2d4efde455c3505d8caf01cb2d
 
 RUN wget -O redmine.tar.gz "https://www.redmine.org/releases/redmine-${REDMINE_VERSION}.tar.gz" \
 	&& echo "$REDMINE_DOWNLOAD_MD5 redmine.tar.gz" | md5sum -c - \
@@ -80,6 +80,12 @@ RUN buildDeps=' \
 	&& rm ./config/database.yml \
 	&& apt-get purge -y --auto-remove $buildDeps
 
+
+# add estimate_timelog
+RUN cd plugins && git clone https://github.com/toritori0318/redmine_estimate_timelog.git
+RUN cd plugins && git clone https://github.com/rails/verification.git
+RUN apt-get update -y && apt-get install -y libghc-iconv-dev build-essential
+RUN echo 'gem "iconv"' > plugins/redmine_estimate_timelog/Gemfile && bundle install --without development test
 
 VOLUME /usr/src/redmine/files
 
